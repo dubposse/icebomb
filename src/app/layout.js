@@ -30,9 +30,11 @@ export default function RootLayout({ children }) {
           <footer className="site-footer">
             <div className="site-footer__inner">
               <p>icebomb – Eis entdecken, Geschmack vergleichen, Senf dazugeben.</p>
-              <nav className="site-footer__links" aria-label="Rechtliche Informationen">
+              <nav className="site-footer__links" aria-label="Informationen">
                 <Link href="/impressum">Impressum</Link>
                 <Link href="/datenschutz">Datenschutz</Link>
+                <a href="https://github.com/dubposse/icebomb" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://github.com/dubposse/icebomb/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Lizenz</a>
               </nav>
             </div>
           </footer>
