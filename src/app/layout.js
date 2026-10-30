@@ -1,4 +1,5 @@
 import { Archivo, JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import Header from "@/components/Header";
 import MotionRoot from "@/components/MotionRoot";
@@ -27,7 +28,13 @@ export default function RootLayout({ children }) {
           <Header />
           <main>{children}</main>
           <footer className="site-footer">
-             icebomb – Eis entdecken, Geschmack vergleichen, Senf dazugeben.
+            <div className="site-footer__inner">
+              <p>icebomb – Eis entdecken, Geschmack vergleichen, Senf dazugeben.</p>
+              <nav className="site-footer__links" aria-label="Rechtliche Informationen">
+                <Link href="/impressum">Impressum</Link>
+                <Link href="/datenschutz">Datenschutz</Link>
+              </nav>
+            </div>
           </footer>
         </MotionRoot>
       </body>
