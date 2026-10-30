@@ -1,14 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useStore } from "./StoreProvider";
+import { fetchProducts } from "@/lib/api-client";
 import ProductImage from "./ProductImage";
 
 const MIN_ITEMS = 10;
 
 // Zwei identische Gruppen für die Endlosschleife; Duplikate sind inert und für Screenreader versteckt.
 export default function ProductTicker() {
-  const { products } = useStore();
+  const [products, setProducts] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchProducts({ limit: 24 })
+      .then((d) => active && setProducts(d.items.slice(0, 16)))
+      .catch(() => active && setProducts([]));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Platzhalter mit fester Höhe verhindert Layout-Sprünge beim Laden.
+  if (products === null) return <div className="ticker ticker--pending" aria-hidden="true" />;
   if (products.length === 0) return null;
 
   const repeats = Math.ceil(MIN_ITEMS / products.length);
@@ -29,7 +43,7 @@ export default function ProductTicker() {
           >
             <Link href={`/eis/${product.id}`} className="ticker__link">
               <span className="ticker__thumb">
-                <ProductImage product={product} />
+                <ProductImage product={product} thumb />
               </span>
               <span className="ticker__name">{product.name}</span>
             </Link>

@@ -162,7 +162,7 @@ export default function Hero() {
         <div className="shape shape--ring"><div className="float float--e" /></div>
       </div>
 
-      <p className="eyebrow hero__fade">Eis · öffentlich · neun Skalen</p>
+      <p className="eyebrow hero__fade">Dein Flavour ist eiskalt!</p>
 
       <h1 id="hero-title" className="wm" aria-label="icebomb">
         {WORDMARK.map((ch, i) => (
@@ -184,7 +184,7 @@ export default function Hero() {
       </div>
 
       <div className="hero__row">
-        <p className="hero__fade">Neun Regler. Keine Gesamtnote. Nur Haltung.</p>
+        <p className="hero__fade">Am Stiel, im Kanister oder von der Diele ❄️🥶❄️🥶❄️</p>
         <a href="#eis" className="btn btn--ink btn--big hero__fade">
           Eis entdecken ↓
         </a>

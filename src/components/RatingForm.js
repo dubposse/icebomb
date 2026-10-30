@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useStore } from "./StoreProvider";
 import ScaleSlider from "./ScaleSlider";
 import { SCALES, neutralValues } from "@/data/scales";
 
-export default function RatingForm({ productId, initialValues, onDone }) {
-  const { rateProduct, visitorId } = useStore();
+export default function RatingForm({ initialValues, onSave, onDone }) {
   const [values, setValues] = useState(initialValues ?? neutralValues());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
-    rateProduct(productId, values);
-    onDone(true);
+    setSaving(true);
+    setError("");
+    try {
+      await onSave(values);
+      onDone(true);
+    } catch (err) {
+      setError(err.message || "Speichern fehlgeschlagen.");
+      setSaving(false);
+    }
   }
 
   return (
@@ -28,9 +35,10 @@ export default function RatingForm({ productId, initialValues, onDone }) {
           onChange={(v) => setValues((prev) => prev.map((x, j) => (j === i ? v : x)))}
         />
       ))}
+      {error && <p className="error form-error" role="alert">{error}</p>}
       <div className="actions">
-        <button type="submit" className="btn btn--lime btn--big" disabled={!visitorId}>
-          Bewertung speichern
+        <button type="submit" className="btn btn--lime btn--big" disabled={saving}>
+          {saving ? "Speichert …" : "Bewertung speichern"}
         </button>
         <button type="button" className="btn btn--ghost" onClick={() => onDone(false)}>Abbrechen</button>
       </div>

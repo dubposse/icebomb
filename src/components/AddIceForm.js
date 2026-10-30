@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useStore } from "./StoreProvider";
 import { CATEGORIES } from "@/data/categories";
+import { ApiError, createProduct, uploadImage } from "@/lib/api-client";
 
 const reveal = {
   initial: { opacity: 0, height: 0, y: -12 },
@@ -14,7 +15,6 @@ const reveal = {
 };
 
 export default function AddIceForm() {
-  const { addProduct } = useStore();
   const router = useRouter();
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
@@ -23,7 +23,12 @@ export default function AddIceForm() {
   const [city, setCity] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageError, setImageError] = useState("");
+  const [file, setFile] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [serverFields, setServerFields] = useState({});
+  const [duplicateId, setDuplicateId] = useState(null);
 
   const isDiele = category === "diele";
   const errors = {
@@ -34,32 +39,52 @@ export default function AddIceForm() {
     city: isDiele && !city.trim() && "Bitte den Ort eingeben.",
     image: !imageUrl && (imageError || "Bitte ein Produktbild auswählen."),
   };
-  const show = (key) => (submitted && errors[key] ? errors[key] : null);
+  const show = (key) => (submitted && errors[key] ? errors[key] : serverFields[key] ?? null);
 
   function onFile(e) {
     const file = e.target.files?.[0];
     setImageError("");
+    setFile(null);
     if (!file) return setImageUrl("");
     if (!file.type.startsWith("image/")) {
       setImageUrl("");
       return setImageError("Das ist keine Bilddatei.");
     }
     const reader = new FileReader();
-    reader.onload = () => setImageUrl(String(reader.result));
+    reader.onload = () => {
+      setImageUrl(String(reader.result));
+      setFile(file);
+    };
     reader.readAsDataURL(file);
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     setSubmitted(true);
-    if (Object.values(errors).some(Boolean)) return;
-    const base = { category, name: name.trim(), imageUrl };
-    const id = addProduct(
-      isDiele
-        ? { ...base, shop: shop.trim(), city: city.trim() }
-        : { ...base, brand: brand.trim() },
-    );
-    router.push(`/eis/${id}`);
+    setServerError("");
+    setServerFields({});
+    setDuplicateId(null);
+    if (Object.values(errors).some(Boolean) || !file || busy) return;
+    setBusy(true);
+    try {
+      const { imageKey } = await uploadImage(file);
+      const base = { category, name: name.trim(), image_key: imageKey };
+      const created = await createProduct(
+        isDiele
+          ? { ...base, shop_name: shop.trim(), city: city.trim() }
+          : { ...base, brand: brand.trim() },
+      );
+      router.push(`/eis/${created.id}`);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409 && err.data.existingId) {
+        setServerError("Dieses Eis gibt es schon. ");
+        setDuplicateId(err.data.existingId);
+      } else {
+        setServerError(err.message || "Speichern fehlgeschlagen.");
+      }
+      if (err instanceof ApiError && err.data.fields) setServerFields(err.data.fields);
+      setBusy(false);
+    }
   }
 
   const error = (key, id = `${key}-err`) => (
@@ -99,7 +124,7 @@ export default function AddIceForm() {
   return (
     <form className="form" onSubmit={onSubmit} noValidate data-cat={category || undefined}>
       <p className="notice" role="note">
-        Mock-Phase: Neue Eissorten und Bilder liegen nur im Browser-Speicher und sind nach einem Neuladen der Seite wieder weg.
+        Neue Eissorten sind öffentlich sichtbar. Das Bild wird beim Speichern hochgeladen (JPG, PNG oder WebP, max. 5 MB).
       </p>
 
       <fieldset className="field">
@@ -157,7 +182,7 @@ export default function AddIceForm() {
           <input
             id="image"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={onFile}
             aria-invalid={Boolean(show("image"))}
             aria-describedby={show("image") ? "image-err" : undefined}
@@ -183,7 +208,15 @@ export default function AddIceForm() {
         {error("image", "image-err")}
       </div>
 
-      <button type="submit" className="btn btn--ink btn--big">Eis hinzufügen</button>
+      {serverError && (
+        <p className="error form-error" role="alert">
+          {serverError}
+          {duplicateId && <Link href={`/eis/${duplicateId}`}>Zum bestehenden Eis</Link>}
+        </p>
+      )}
+      <button type="submit" className="btn btn--ink btn--big" disabled={busy}>
+        {busy ? "Wird gespeichert …" : "Eis hinzufügen"}
+      </button>
     </form>
   );
 }

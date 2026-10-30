@@ -2,7 +2,6 @@ import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import MotionRoot from "@/components/MotionRoot";
-import { StoreProvider } from "@/components/StoreProvider";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -16,8 +15,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "icebomb – Eis bewerten, spielerisch",
-  description: "Bewerte Eis am Stiel, im Kanister und von der Eisdiele auf neun spielerischen Skalen.",
+  title: "icebomb – Eis entdecken, bewerten & Geschmack vergleichen",
+  description: "Eis am Stiel, im Kanister oder von der Diele: Entdecke Eissorten, bewerte sie auf neun ungewöhnlichen Skalen und vergleiche deinen Geschmack mit anderen.",
 };
 
 export default function RootLayout({ children }) {
@@ -25,13 +24,11 @@ export default function RootLayout({ children }) {
     <html lang="de" className={`${archivo.variable} ${mono.variable}`}>
       <body>
         <MotionRoot>
-          <StoreProvider>
           <Header />
           <main>{children}</main>
           <footer className="site-footer">
-            icebomb — Mock-Phase. Alle Daten sind Beispiele und nur lokal im Browser.
+             icebomb – Eis entdecken, Geschmack vergleichen, Senf dazugeben.
           </footer>
-        </StoreProvider>
         </MotionRoot>
       </body>
     </html>

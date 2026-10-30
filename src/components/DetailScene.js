@@ -69,11 +69,38 @@ export default function DetailScene({ title, refreshKey, children }) {
   );
 }
 
+// Skaliert die Überschrift so, dass das längste Wort in die Spalte passt (nur font-size, kollidiert nicht mit GSAP-Transforms).
 export function AnimatedTitle({ text }) {
+  const ref = useRef(null);
+
+  useIsoLayoutEffect(() => {
+    const title = ref.current;
+    const column = title?.parentElement;
+    if (!title || !column) return;
+    const fit = () => {
+      const prev = parseFloat(title.style.getPropertyValue("--fit")) || 1;
+      title.removeAttribute("data-break");
+      let widest = 0;
+      title.querySelectorAll(".t-word").forEach((w) => {
+        widest = Math.max(widest, w.scrollWidth);
+      });
+      const natural = widest / prev;
+      const ratio = natural > 0 ? column.clientWidth / natural : 1;
+      const next = Math.min(1, Math.max(0.4, ratio));
+      title.style.setProperty("--fit", next.toFixed(3));
+      title.toggleAttribute("data-break", ratio < 0.4);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(column);
+    document.fonts?.ready.then(fit);
+    return () => ro.disconnect();
+  }, [text]);
+
   return (
-    <h1 className="t-title" aria-label={text}>
-      {text.split(" ").map((word, wi) => (
-        <span key={wi} className="t-word" aria-hidden="true">
+    <h1 ref={ref} className="t-title" aria-label={text}>
+      {text.split(" ").flatMap((word) => word.split(/(?<=-)(?=.)/)).map((word, wi) => (
+        <span key={wi} className="t-word" data-join={word.endsWith("-") || undefined} aria-hidden="true">
           {word.split("").map((c, ci) => (
             <span key={ci} className="t-mask">
               <span className="t-char">{c}</span>

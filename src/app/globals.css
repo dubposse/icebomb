@@ -20,15 +20,14 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 .browser { scroll-margin-top: 4rem; }
-html, body { max-width: 100vw; overflow-x: clip; }
-
 body {
-  min-height: 100vh; display: flex; flex-direction: column;
+  min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
   font-family: var(--font-archivo), system-ui, sans-serif; line-height: 1.45;
   color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased;
 }
 
-main { flex: 1; width: 100%; padding-bottom: 5rem; }
+/* clip statt hidden: kein Scroll-Container, Sticky/GSAP bleiben intakt. Begrenzt nur die bewusst überstehenden Deko-Formen und den 100vw-Vollbreiten-Streifen. */
+main { flex: 1; width: 100%; padding-bottom: 5rem; overflow-x: clip; }
 main > section:not(.hero), main > .narrow, main > article, main > .empty { width: min(1240px, 100% - 2.5rem); margin-inline: auto; }
 main > section.hero { width: 100%; }
 
@@ -75,6 +74,7 @@ h1, h2, h3, .logo { font-stretch: 62%; font-weight: 900; text-transform: upperca
 
 /* Produkt-Ticker */
 .ticker { position: relative; overflow: hidden; background: var(--lime); color: var(--ink); border-block: 2px solid var(--ink); }
+.ticker--pending { min-height: 86px; }
 .ticker__track { display: flex; width: max-content; animation: ticker var(--dur, 40s) linear infinite; will-change: transform; }
 .ticker__group { list-style: none; display: flex; flex-shrink: 0; gap: 1.2rem; padding: .6rem .6rem .6rem 0; margin-right: 0; }
 .ticker__item { flex-shrink: 0; }
@@ -215,13 +215,18 @@ h1, h2, h3, .logo { font-stretch: 62%; font-weight: 900; text-transform: upperca
 .deco--b { width: clamp(80px, 14vw, 180px); aspect-ratio: 1; left: -3%; top: 38%; border-radius: 50%; border: 18px solid var(--violet); opacity: .8; }
 .deco--c { width: clamp(70px, 10vw, 130px); aspect-ratio: 1; right: 10%; top: 55%; background: var(--lime); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
 .detail__origin { font-size: 1.25rem; font-weight: 700; }
-.back { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; justify-self: start; margin-top: 1.2rem; transition: transform .4s var(--spring); }
+.back { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; justify-self: start; margin-top: 1.2rem; min-height: 44px; display: inline-flex; align-items: center; transition: transform .4s var(--spring); }
 .back:hover { transform: translateX(-6px); }
-.detail__hero { display: grid; gap: 1.5rem; align-items: end; }
+.detail__hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: end; }
+.detail__hero > * { min-width: 0; }
 .detail__meta { display: grid; gap: .8rem; justify-items: start; }
-.t-title { font-size: clamp(3.2rem, 15vw, 9rem); line-height: .86; overflow-wrap: anywhere; }
-.t-word { display: inline-block; white-space: nowrap; margin-right: .22em; }
+.detail__origin { overflow-wrap: anywhere; }
+/* --fit (0.4–1) wird in AnimatedTitle gesetzt, damit das längste Wort in die Spalte passt. */
+.t-title { font-size: calc(clamp(2.6rem, 15vw, 9rem) * var(--fit, 1)); line-height: .86; max-width: 100%; }
+.t-title[data-break] .t-word { white-space: normal; overflow-wrap: anywhere; }
+.t-word { display: inline-block; white-space: nowrap; margin-right: .22em; max-width: 100%; }
 .t-mask { display: inline-block; overflow: clip; padding-bottom: .06em; }
+.t-word[data-join] { margin-right: 0; }
 .t-char { display: inline-block; }
 .muted { color: var(--grey); font-family: var(--mono); font-size: .85rem; }
 
@@ -283,7 +288,7 @@ h1, h2, h3, .logo { font-stretch: 62%; font-weight: 900; text-transform: upperca
 }
 @media (min-width: 720px) {
   .filters { grid-template-columns: minmax(260px, 1fr) auto; align-items: center; gap: 2rem; }
-  .detail__hero { grid-template-columns: minmax(300px, 1fr) 1.1fr; gap: 3rem; }
+  .detail__hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 4vw, 3rem); }
   .rating-form { padding: 2.5rem; }
   .grid__cell:nth-child(3n + 2) { margin-top: 3rem; }
 }
@@ -303,3 +308,8 @@ h1, h2, h3, .logo { font-stretch: 62%; font-weight: 900; text-transform: upperca
 
 .field .cat-pick__item { font-family: var(--font-archivo), system-ui, sans-serif; font-size: 1.5rem; letter-spacing: -.01em; }
 @media (min-width: 640px) { .field .cat-pick__item { font-size: 1.25rem; } }
+
+/* Backend-Zustände */
+.more { display: grid; justify-items: center; gap: .6rem; margin-top: 2rem; }
+.btn[disabled] { opacity: .55; cursor: progress; }
+.form-error { margin: 0; }

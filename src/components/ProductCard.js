@@ -11,7 +11,7 @@ import {
 import ProductImage from "./ProductImage";
 import { getCategory } from "@/data/categories";
 
-export default function ProductCard({ product, ratingCount }) {
+export default function ProductCard({ product, ratingCount = product.ratingCount ?? 0 }) {
   const cat = getCategory(product.category);
   const reduce = useReducedMotion();
   const px = useMotionValue(0);
@@ -47,7 +47,7 @@ export default function ProductCard({ product, ratingCount }) {
       >
         <Link href={`/eis/${product.id}`} className="card">
           <div className="card__media">
-            <ProductImage product={product} />
+            <ProductImage product={product} thumb />
             <span className="card__glare" aria-hidden="true" />
             <span className="card__tag">{cat.label}</span>
             <span className={`card__count${ratingCount === 0 ? " card__count--none" : ""}`}>

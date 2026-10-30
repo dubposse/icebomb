@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { useStore } from "./StoreProvider";
 import ProductImage from "./ProductImage";
 import ProfileChart from "./ProfileChart";
 import RatingForm from "./RatingForm";
 import DetailScene, { AnimatedTitle } from "./DetailScene";
 import { getCategory } from "@/data/categories";
-import { averageProfile } from "@/lib/ratings";
+import { isUuid } from "@/lib/validation";
+import { fetchProduct, fetchRatings, saveRating } from "@/lib/api-client";
 
 const BURST = Array.from({ length: 14 }, (_, i) => {
   const angle = (i / 14) * Math.PI * 2;
@@ -48,29 +48,48 @@ function SavedToast({ onGone }) {
 }
 
 export default function ProductDetail({ id }) {
-  const { products, ratings, visitorId } = useStore();
+  const [state, setState] = useState({ id: null });
   const [rating, setRating] = useState(false);
   const [saved, setSaved] = useState(false);
   const clearSaved = useCallback(() => setSaved(false), []);
 
-  const product = products.find((p) => p.id === id);
-  if (!product) {
+  useEffect(() => {
+    if (!isUuid(id)) return;
+    let active = true;
+    Promise.all([fetchProduct(id), fetchRatings(id)])
+      .then(([product, summary]) => active && setState({ id, product, summary }))
+      .catch((err) => active && setState({ id, failed: err.status === 404 ? "missing" : "error" }));
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const current = !isUuid(id) ? { id, failed: "missing" } : state;
+  if (current.id !== id) return <p className="empty" aria-live="polite">Lade Eis …</p>;
+  if (current.failed) {
     return (
       <div className="empty">
-        <h1>Dieses Eis ist geschmolzen.</h1>
-        <p>Neu hinzugefügte Sorten gehen beim Neuladen verloren.</p>
+        <h1>{current.failed === "missing" ? "Dieses Eis gibt es nicht." : "Das hat nicht geklappt."}</h1>
+        <p>
+          {current.failed === "missing"
+            ? "Vielleicht wurde der Link falsch kopiert."
+            : "Das Eis konnte nicht geladen werden. Bitte später erneut versuchen."}
+        </p>
         <Link href="/" className="btn btn--lime">Zur Startseite</Link>
       </div>
     );
   }
 
+  const { product, summary } = current;
+  const onSave = async (values) => {
+    const next = await saveRating(id, values);
+    setState((prev) => ({ ...prev, summary: next }));
+  };
+
   const cat = getCategory(product.category);
-  const productRatings = ratings.filter((r) => r.productId === id);
-  const average = averageProfile(productRatings);
-  const own = visitorId
-    ? productRatings.find((r) => r.visitorId === visitorId)?.values
-    : undefined;
-  const count = productRatings.length;
+  const average = summary.average ?? null;
+  const own = summary.own ?? undefined;
+  const count = summary.count;
 
   return (
     <article className="detail" data-cat={product.category}>
@@ -89,9 +108,6 @@ export default function ProductDetail({ id }) {
             <p className="muted">
               {count === 0 ? "Noch keine Bewertungen" : `${count} ${count === 1 ? "Bewertung" : "Bewertungen"}`}
             </p>
-            {product.isNew && (
-              <p className="notice">Neu hinzugefügt – nur lokal, nach dem Neuladen weg.</p>
-            )}
             {!rating && (
               <button type="button" className="btn btn--ink btn--big" onClick={() => setRating(true)}>
                 {own ? "Bewertung ändern" : "Jetzt bewerten"}
@@ -111,8 +127,8 @@ export default function ProductDetail({ id }) {
               transition={{ type: "spring", stiffness: 240, damping: 24 }}
             >
               <RatingForm
-                productId={id}
                 initialValues={own}
+                onSave={onSave}
                 onDone={(didSave) => {
                   setRating(false);
                   if (didSave === true) setSaved(true);
