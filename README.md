@@ -1,6 +1,43 @@
 # icebomb
 
-Öffentliche Eis-Bewertungs-App (Next.js App Router, Neon PostgreSQL, Cloudflare R2).
+🍦💣 **icebomb – Taste. Rate. Repeat.**
+
+Eine öffentliche Web-App zum Entdecken, Bewerten und Vergleichen von Eisprodukten. Ob Eis am Stiel, im Kanister oder von der Diele – auf icebomb kann jeder neue Eissorten mit Bild hinzufügen und seinen Geschmack auf neun ungewöhnlichen Skalen bewerten.
+
+Keine Registrierung, keine klassische Sternebewertung. Stattdessen entstehen aus den Bewertungen individuelle Geschmacksprofile und gemeinsame Durchschnittswerte.
+
+**Live-Demo:** https://icebomb.vercel.app
+
+## Funktionen
+
+- Eisprodukte mit Bildern hinzufügen und öffentlich entdecken
+- Drei Kategorien: Eis am Stiel, Eis im Kanister und Eis von der Diele
+- Neun bipolare Bewertungsskalen von 0 bis 100
+- Individuelle Bewertungen und aggregierte Geschmacksprofile
+- Bewertungen ohne Benutzerkonto; erneute Bewertung aktualisiert die bisherige
+- Produktsuche und Kategorie-Filter
+- Responsives, animationsreiches Frontend
+
+## Tech-Stack
+
+- **Frontend:** Next.js 16 (App Router), React 19, JavaScript, CSS
+- **Animationen:** Motion for React, GSAP und CSS
+- **Datenbank:** Neon PostgreSQL
+- **Bildspeicherung:** Cloudflare R2 (S3-kompatibel)
+- **Bildverarbeitung:** Sharp (WebP-Konvertierung und Optimierung)
+- **Hosting:** Vercel
+- **Paketmanager:** pnpm
+
+## Technische Besonderheiten
+
+- Serverseitige API-Routen für Produkte, Bewertungen und Bild-Uploads
+- Anonyme Besucherkennung über signierte HttpOnly-Cookies
+- Aktualisierung bestehender Bewertungen statt mehrfacher Bewertungen desselben Browsers
+- Bildoptimierung mit WebP-Konvertierung und Thumbnail-Erstellung
+- Persistentes Rate-Limiting und grundlegende Missbrauchsschutzmaßnahmen
+- Responsive Motion-Design mit Unterstützung für `prefers-reduced-motion`
+
+---
 
 ## Entwicklung
 
@@ -36,3 +73,11 @@ Ohne R2-Variablen antwortet `POST /api/uploads` nach erfolgreicher Bildprüfung 
 pnpm test      # Unit-Tests (ohne Netzwerk)
 pnpm test:db   # Integration gegen Neon; legt nur eigene Testzeilen an und löscht sie wieder
 ```
+
+## Lizenz
+
+icebomb ist unter der **GNU Affero General Public License v3.0 (AGPL-3.0)** veröffentlicht.
+
+Copyright (C) 2026 Matthias Brehm
+
+Weitere Informationen findest du in der Datei(LICENSE).
