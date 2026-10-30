@@ -6,7 +6,7 @@ export const metadata = {
 export default function DatenschutzPage() {
   return (
     <article className="legal-page">
-      <h1 className="page-title">Datenschutzerklärung</h1>
+      <h1 className="page-title">Datenschutz</h1>
 
       <section>
         <h2>1. Verantwortlicher</h2>
